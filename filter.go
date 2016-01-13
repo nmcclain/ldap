@@ -330,9 +330,6 @@ func ServerApplyFilter(f *ber.Packet, entry *Entry) (bool, LDAPResultCode) {
 							return true, LDAPResultSuccess
 						}
 					}
-					if strings.ToLower(v) == strings.ToLower(value) {
-						return true, LDAPResultSuccess
-					}
 				}
 			}
 		}
