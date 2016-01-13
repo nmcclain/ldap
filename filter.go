@@ -306,8 +306,36 @@ func ServerApplyFilter(f *ber.Packet, entry *Entry) (bool, LDAPResultCode) {
 		} else if !ok {
 			return true, LDAPResultSuccess
 		}
-	case "FilterSubstrings": // TODO
-		return false, LDAPResultOperationsError
+	case "Substrings":
+		if len(f.Children) != 2 {
+			return false, LDAPResultOperationsError
+		}
+		attribute := f.Children[0].Value.(string)
+		bytes := f.Children[1].Children[0].Data.Bytes()
+		value := string(bytes[:])
+		for _, a := range entry.Attributes {
+			if strings.ToLower(a.Name) == strings.ToLower(attribute) {
+				for _, v := range a.Values {
+					switch f.Children[1].Children[0].Tag {
+					case FilterSubstringsInitial:
+						if strings.HasPrefix(v, value) {
+							return true, LDAPResultSuccess
+						}
+					case FilterSubstringsAny:
+						if strings.Contains(v, value) {
+							return true, LDAPResultSuccess
+						}
+					case FilterSubstringsFinal:
+						if strings.HasSuffix(v, value) {
+							return true, LDAPResultSuccess
+						}
+					}
+					if strings.ToLower(v) == strings.ToLower(value) {
+						return true, LDAPResultSuccess
+					}
+				}
+			}
+		}
 	case "FilterGreaterOrEqual": // TODO
 		return false, LDAPResultOperationsError
 	case "FilterLessOrEqual": // TODO
