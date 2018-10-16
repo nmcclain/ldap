@@ -281,7 +281,7 @@ func TestSearchFiltering(t *testing.T) {
 				"-b", serverBaseDN, "-D", "cn=testy,"+serverBaseDN, "-w", "iLike2test", i.filterStr)
 			out, _ := cmd.CombinedOutput()
 			if !strings.Contains(string(out), "numResponses: "+i.numResponses) {
-				t.Errorf("ldapsearch failed - expected numResponses==%d: %v", i.numResponses, string(out))
+				t.Errorf("ldapsearch failed - expected numResponses==%s: %v", i.numResponses, string(out))
 			}
 			done <- true
 		}()
