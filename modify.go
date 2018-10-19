@@ -65,7 +65,7 @@ func (p *PartialAttribute) encode() *ber.Packet {
 }
 
 type ModifyRequest struct {
-	dn                string
+	Dn                string
 	addAttributes     []PartialAttribute
 	deleteAttributes  []PartialAttribute
 	replaceAttributes []PartialAttribute
@@ -85,7 +85,7 @@ func (m *ModifyRequest) Replace(attrType string, attrVals []string) {
 
 func (m ModifyRequest) encode() *ber.Packet {
 	request := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationModifyRequest, nil, "Modify Request")
-	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.dn, "DN"))
+	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.Dn, "DN"))
 	changes := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Changes")
 	for _, attribute := range m.addAttributes {
 		change := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Change")
@@ -113,7 +113,7 @@ func NewModifyRequest(
 	dn string,
 ) *ModifyRequest {
 	return &ModifyRequest{
-		dn: dn,
+		Dn: dn,
 	}
 }
 

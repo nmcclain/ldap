@@ -71,7 +71,7 @@ func HandleModifyRequest(req *ber.Packet, boundDN string, fns map[string]Modifie
 	}
 	var ok bool
 	modReq := ModifyRequest{}
-	modReq.dn, ok = req.Children[0].Value.(string)
+	modReq.Dn, ok = req.Children[0].Value.(string)
 	if !ok {
 		return LDAPResultProtocolError
 	}
