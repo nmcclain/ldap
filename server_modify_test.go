@@ -179,9 +179,9 @@ func (h modifyTestHandler) Delete(boundDN, deleteDN string, conn net.Conn) (LDAP
 }
 func (h modifyTestHandler) Modify(boundDN string, req ModifyRequest, conn net.Conn) (LDAPResultCode, error) {
 	// only succeed on expected contents of modify.ldif:
-	if req.Dn == "cn=testy,dc=example,dc=com" && len(req.addAttributes) == 1 &&
-		len(req.deleteAttributes) == 3 && len(req.replaceAttributes) == 2 &&
-		req.deleteAttributes[2].attrType == "details" && len(req.deleteAttributes[2].attrVals) == 0 {
+	if req.Dn == "cn=testy,dc=example,dc=com" && len(req.AddAttributes) == 1 &&
+		len(req.DeleteAttributes) == 3 && len(req.ReplaceAttributes) == 2 &&
+		req.DeleteAttributes[2].AttrType == "details" && len(req.DeleteAttributes[2].AttrVals) == 0 {
 		return LDAPResultSuccess, nil
 	}
 	return LDAPResultInsufficientAccessRights, nil
