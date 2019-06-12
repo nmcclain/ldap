@@ -281,7 +281,7 @@ func TestSearchFiltering(t *testing.T) {
 				"-b", serverBaseDN, "-D", "cn=testy,"+serverBaseDN, "-w", "iLike2test", i.filterStr)
 			out, _ := cmd.CombinedOutput()
 			if !strings.Contains(string(out), "numResponses: "+i.numResponses) {
-				t.Errorf("ldapsearch failed - expected numResponses==%d: %v", i.numResponses, string(out))
+				t.Errorf("ldapsearch failed - expected numResponses==%s: %v", i.numResponses, string(out))
 			}
 			done <- true
 		}()
@@ -327,6 +327,58 @@ func TestSearchAttributes(t *testing.T) {
 		}
 		if strings.Contains(string(out), "accountstatus") {
 			t.Errorf("ldapsearch failed - accountstatus attr should not be displayed: %v", string(out))
+		}
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		t.Errorf("ldapsearch command timed out")
+	}
+	quit <- true
+}
+
+func TestSearchAllUserAttributes(t *testing.T) {
+	quit := make(chan bool)
+	done := make(chan bool)
+	go func() {
+		s := NewServer()
+		s.EnforceLDAP = true
+		s.QuitChannel(quit)
+		s.SearchFunc("", searchSimple{})
+		s.BindFunc("", bindSimple{})
+		if err := s.ListenAndServe(listenString); err != nil {
+			t.Errorf("s.ListenAndServe failed: %s", err.Error())
+		}
+	}()
+
+	go func() {
+		filterString := ""
+		cmd := exec.Command("ldapsearch", "-H", ldapURL, "-x",
+			"-b", serverBaseDN, "-D", "cn=testy,"+serverBaseDN, "-w", "iLike2test", filterString, "*")
+		out, _ := cmd.CombinedOutput()
+
+		if !strings.Contains(string(out), "dn: cn=ned,o=testers,c=test") {
+			t.Errorf("ldapsearch failed - missing requested DN attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "cn: ned") {
+			t.Errorf("ldapsearch failed - missing requested CN attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "uidNumber") {
+			t.Errorf("ldapsearch failed - missing requested uidNumber attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "accountstatus") {
+			t.Errorf("ldapsearch failed - missing requested accountstatus attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "o: ate") {
+			t.Errorf("ldapsearch failed - missing requested o attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "description") {
+			t.Errorf("ldapsearch failed - missing requested description attribute: %v", string(out))
+		}
+		if !strings.Contains(string(out), "objectclass") {
+			t.Errorf("ldapsearch failed - missing requested objectclass attribute: %v", string(out))
 		}
 		done <- true
 	}()
