@@ -1,9 +1,12 @@
+// +build ignore
+
 package main
 
 import (
-	"github.com/nmcclain/ldap"
 	"log"
 	"net"
+
+	"github.com/nmcclain/ldap"
 )
 
 /////////////
@@ -27,7 +30,7 @@ func main() {
 	listen := "localhost:3389"
 	log.Printf("Starting example LDAP server on %s", listen)
 	if err := s.ListenAndServe(listen); err != nil {
-		log.Fatal("LDAP Server Failed: %s", err.Error())
+		log.Fatalf("LDAP Server Failed: %s", err.Error())
 	}
 }
 
