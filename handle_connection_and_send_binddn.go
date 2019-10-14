@@ -73,9 +73,7 @@ handler:
 			bindDnPacket := makeBindDnRequest(conf.Ldap.BindDn, conf.Ldap.Password)
 			bindDnReq := bindDnPacket.Children[1]
 
-			// fmt.Printf("[start req]\n")
 			// ber.PrintPacket(bindDnReq)	// DEBUG
-			// fmt.Printf("[end req]\n")
 
 			server.Stats.countBinds(1)
 			ldapResultCode := HandleBindRequest(bindDnReq, server.BindFns, conn)
@@ -206,9 +204,7 @@ func makeBindDnRequest(username, password string) *ber.Packet {
 	bindRequest.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, password, "Password"))
 	packet.AppendChild(bindRequest)
 
-	// fmt.Print("[start packet]\n")
 	// ber.PrintPacket(packet)	// DEBUG
-	// fmt.Print("[end packet]\n")
 
 	return packet
 }
