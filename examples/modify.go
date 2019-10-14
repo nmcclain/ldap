@@ -23,7 +23,7 @@ var (
 	Filter     string = "(cn=kirkj)"
 )
 
-func search(l *ldap.Conn, filter string, attributes []string) (*ldap.Entry, *ldap.Error) {
+func search(l *ldap.Conn, filter string, attributes []string) (*ldap.Entry, error) {
 	search := ldap.NewSearchRequest(
 		BaseDN,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
