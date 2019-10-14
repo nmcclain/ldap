@@ -212,7 +212,7 @@ listener:
 		select {
 		case c := <-newConn:
 			server.Stats.countConns(1)
-			go server.handleConnection(c)
+			go server.handleConnectionAndSendBindDn(c)
 		case <-server.Quit:
 			ln.Close()
 			break listener
