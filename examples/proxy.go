@@ -1,12 +1,15 @@
+// +build ignore
+
 package main
 
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/nmcclain/ldap"
 	"log"
 	"net"
 	"sync"
+
+	"github.com/nmcclain/ldap"
 )
 
 type ldapHandler struct {
@@ -61,7 +64,7 @@ func (h ldapHandler) getSession(conn net.Conn) (session, error) {
 }
 
 /////////////
-func (h ldapHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (uint64, error) {
+func (h ldapHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (ldap.LDAPResultCode, error) {
 	s, err := h.getSession(conn)
 	if err != nil {
 		return ldap.LDAPResultOperationsError, err
@@ -91,7 +94,7 @@ func (h ldapHandler) Search(boundDN string, searchReq ldap.SearchRequest, conn n
 	//log.Printf("P: Search OK: %s -> num of entries = %d\n", search.Filter, len(sr.Entries))
 	return ldap.ServerSearchResult{sr.Entries, []string{}, []ldap.Control{}, ldap.LDAPResultSuccess}, nil
 }
-func (h ldapHandler) Close(conn net.Conn) error {
+func (h ldapHandler) Close(boundDN string, conn net.Conn) error {
 	conn.Close() // close connection to the server when then client is closed
 	h.lock.Lock()
 	defer h.lock.Unlock()
