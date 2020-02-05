@@ -329,6 +329,17 @@ func (b bindPanic) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultC
 	return LDAPResultInvalidCredentials, nil
 }
 
+type bindCaseInsensitive struct {
+}
+
+func (b bindCaseInsensitive) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+	if strings.ToLower(bindDN) == "cn=case,o=testers,c=test" && bindSimplePw == "iLike2test" {
+		return LDAPResultSuccess, nil
+	}
+	return LDAPResultInvalidCredentials, nil
+}
+
+
 type searchSimple struct {
 }
 
@@ -405,6 +416,25 @@ func (s searchControls) Search(boundDN string, searchReq SearchRequest, conn net
 			&EntryAttribute{"objectclass", []string{"posixaccount"}},
 		}}
 		entries = append(entries, newEntry)
+	}
+	return ServerSearchResult{entries, []string{}, []Control{}, LDAPResultSuccess}, nil
+}
+
+
+type searchCaseInsensitive struct {
+}
+
+func (s searchCaseInsensitive) Search(boundDN string, searchReq SearchRequest, conn net.Conn) (ServerSearchResult, error) {
+	entries := []*Entry{
+		&Entry{"cn=CASE,o=testers,c=test", []*EntryAttribute{
+			&EntryAttribute{"cn", []string{"CaSe"}},
+			&EntryAttribute{"o", []string{"ate"}},
+			&EntryAttribute{"uidNumber", []string{"5005"}},
+			&EntryAttribute{"accountstatus", []string{"active"}},
+			&EntryAttribute{"uid", []string{"trent"}},
+			&EntryAttribute{"description", []string{"trent via sa"}},
+			&EntryAttribute{"objectclass", []string{"posixaccount"}},
+		}},
 	}
 	return ServerSearchResult{entries, []string{}, []Control{}, LDAPResultSuccess}, nil
 }

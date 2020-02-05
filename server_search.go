@@ -46,6 +46,7 @@ func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64,
 	}
 
 	i := 0
+	searchReqBaseDNLower := strings.ToLower(searchReq.BaseDN)
 	for _, entry := range searchResp.Entries {
 		if server.EnforceLDAP {
 			// filter
@@ -61,15 +62,16 @@ func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64,
 			switch searchReq.Scope {
 			case ScopeWholeSubtree: // The scope is constrained to the entry named by baseObject and to all its subordinates.
 			case ScopeBaseObject: // The scope is constrained to the entry named by baseObject.
-				if entry.DN != searchReq.BaseDN {
+				if strings.ToLower(entry.DN) != searchReqBaseDNLower {
 					continue
 				}
 			case ScopeSingleLevel: // The scope is constrained to the immediate subordinates of the entry named by baseObject.
-				parts := strings.Split(entry.DN, ",")
-				if len(parts) < 2 && entry.DN != searchReq.BaseDN {
+				entryDNLower := strings.ToLower(entry.DN)
+				parts := strings.Split(entryDNLower, ",")
+				if len(parts) < 2 && entryDNLower != searchReqBaseDNLower {
 					continue
 				}
-				if dn := strings.Join(parts[1:], ","); dn != searchReq.BaseDN {
+				if dnSuffix := strings.Join(parts[1:], ","); dnSuffix != searchReqBaseDNLower {
 					continue
 				}
 			}

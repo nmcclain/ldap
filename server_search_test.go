@@ -451,6 +451,42 @@ func TestSearchScope(t *testing.T) {
 	quit <- true
 }
 
+
+/////////////////////////
+func TestSearchScopeCaseInsensitive(t *testing.T) {
+	quit := make(chan bool)
+	done := make(chan bool)
+	go func() {
+		s := NewServer()
+		s.EnforceLDAP = true
+		s.QuitChannel(quit)
+		s.SearchFunc("", searchCaseInsensitive{})
+		s.BindFunc("", bindCaseInsensitive{})
+		if err := s.ListenAndServe(listenString); err != nil {
+			t.Errorf("s.ListenAndServe failed: %s", err.Error())
+		}
+	}()
+
+	go func() {
+		cmd := exec.Command("ldapsearch", "-H", ldapURL, "-x",
+			"-b", "cn=Case,o=testers,c=test", "-D", "cn=CAse,o=testers,c=test", "-w", "iLike2test", "-s", "base", "cn=CASe")
+		out, _ := cmd.CombinedOutput()
+		if !strings.Contains(string(out), "dn: cn=CASE,o=testers,c=test") {
+			t.Errorf("ldapsearch 'base' scope failed - didn't find expected DN: %v", string(out))
+		}
+
+		done <- true
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(timeout):
+		t.Errorf("ldapsearch command timed out")
+	}
+	quit <- true
+}
+
+
 func TestSearchControls(t *testing.T) {
 	quit := make(chan bool)
 	done := make(chan bool)

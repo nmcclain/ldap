@@ -311,22 +311,23 @@ func ServerApplyFilter(f *ber.Packet, entry *Entry) (bool, LDAPResultCode) {
 			return false, LDAPResultOperationsError
 		}
 		attribute := f.Children[0].Value.(string)
-		bytes := f.Children[1].Children[0].Data.Bytes()
-		value := string(bytes[:])
+		valueBytes := f.Children[1].Children[0].Data.Bytes()
+		valueLower := strings.ToLower(string(valueBytes[:]))
 		for _, a := range entry.Attributes {
 			if strings.ToLower(a.Name) == strings.ToLower(attribute) {
 				for _, v := range a.Values {
+					vLower := strings.ToLower(v)
 					switch f.Children[1].Children[0].Tag {
 					case FilterSubstringsInitial:
-						if strings.HasPrefix(v, value) {
+						if strings.HasPrefix(vLower, valueLower) {
 							return true, LDAPResultSuccess
 						}
 					case FilterSubstringsAny:
-						if strings.Contains(v, value) {
+						if strings.Contains(vLower, valueLower) {
 							return true, LDAPResultSuccess
 						}
 					case FilterSubstringsFinal:
-						if strings.HasSuffix(v, value) {
+						if strings.HasSuffix(vLower, valueLower) {
 							return true, LDAPResultSuccess
 						}
 					}
