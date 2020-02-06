@@ -378,16 +378,18 @@ func routeFunc(dn string, funcNames []string) string {
 	bestPick := ""
 	bestPickWeight := 0
 	dnMatch := "," + strings.ToLower(dn)
+	var weight int
 	for _, fn := range funcNames {
 		if strings.HasSuffix(dnMatch, "," + fn) {
 			//  empty string as 0, no-comma string 1 , etc
-			c := strings.Count(fn, ",") + 1
 			if fn == "" {
-				c = 0
+				weight = 0
+			} else {
+				weight = strings.Count(fn, ",") + 1
 			}
-			if c > bestPickWeight {
+			if weight > bestPickWeight {
 				bestPick = fn
-				bestPickWeight = c
+				bestPickWeight = weight
 			}
 		}
 	}
