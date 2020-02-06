@@ -438,3 +438,22 @@ func (s searchCaseInsensitive) Search(boundDN string, searchReq SearchRequest, c
 	}
 	return ServerSearchResult{entries, []string{}, []Control{}, LDAPResultSuccess}, nil
 }
+
+
+func TestRouteFunc(t *testing.T) {
+	if routeFunc("", []string{"a", "xyz", "tt"}) != "" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("a=b", []string{"a=b", "x=y,a=b", "tt"}) != "a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("x=y,a=b", []string{"a=b", "x=y,a=b", "tt"}) != "x=y,a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("x=y,a=b", []string{"x=y,a=b", "a=b", "tt"}) != "x=y,a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("nosuch", []string{"x=y,a=b", "a=b", "tt"}) != "" {
+		t.Error("routeFunc failed")
+	}
+}

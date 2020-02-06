@@ -376,14 +376,18 @@ func sendPacket(conn net.Conn, packet *ber.Packet) error {
 //
 func routeFunc(dn string, funcNames []string) string {
 	bestPick := ""
+	bestPickWeight := 0
+	dnMatch := "," + strings.ToLower(dn)
 	for _, fn := range funcNames {
-		if strings.HasSuffix(dn, fn) {
-			l := len(strings.Split(bestPick, ","))
-			if bestPick == "" {
-				l = 0
+		if strings.HasSuffix(dnMatch, "," + fn) {
+			//  empty string as 0, no-comma string 1 , etc
+			c := strings.Count(fn, ",") + 1
+			if fn == "" {
+				c = 0
 			}
-			if len(strings.Split(fn, ",")) > l {
+			if c > bestPickWeight {
 				bestPick = fn
+				bestPickWeight = c
 			}
 		}
 	}
