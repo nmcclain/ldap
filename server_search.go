@@ -165,10 +165,19 @@ func filterAttributes(entry *Entry, attributes []string) (*Entry, error) {
 	for _, attr := range entry.Attributes {
 		attrNameLower := strings.ToLower(attr.Name)
 		for _, requested := range attributes {
+			requestedLower := strings.ToLower(requested)
 			// You can request the directory server to return operational attributes by adding + (the plus sign) in your ldapsearch command.
-			if requested == "*" || requested == "+" || attrNameLower == strings.ToLower(requested) {
-				newAttributes = append(newAttributes, attr)
-				break
+			// "+supportedControl" is treated as an operational attribute
+			if strings.HasPrefix(attrNameLower, "+") {
+				if requestedLower == "+" || attrNameLower == "+" + requestedLower {
+					newAttributes = append(newAttributes, &EntryAttribute{attr.Name[1:], attr.Values})
+					break
+				}
+			} else {
+				if requested == "*" || attrNameLower == requestedLower {
+					newAttributes = append(newAttributes, attr)
+					break
+				}
 			}
 		}
 	}
