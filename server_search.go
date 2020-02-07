@@ -164,7 +164,8 @@ func filterAttributes(entry *Entry, attributes []string) (*Entry, error) {
 
 	for _, attr := range entry.Attributes {
 		for _, requested := range attributes {
-			if requested == "*" || strings.ToLower(attr.Name) == strings.ToLower(requested) {
+			// You can request the directory server to return operational attributes by adding + (the plus sign) in your ldapsearch command.
+			if requested == "*" || requested == "+" || strings.ToLower(attr.Name) == strings.ToLower(requested) {
 				newAttributes = append(newAttributes, attr)
 			}
 		}
