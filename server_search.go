@@ -76,12 +76,10 @@ func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64,
 				}
 			}
 
-			// attributes
-			if len(searchReq.Attributes) > 1 || (len(searchReq.Attributes) == 1 && len(searchReq.Attributes[0]) > 0) {
-				entry, err = filterAttributes(entry, searchReq.Attributes)
-				if err != nil {
-					return NewError(LDAPResultOperationsError, err)
-				}
+			// filter attributes
+			entry, err = filterAttributes(entry, searchReq.Attributes)
+			if err != nil {
+				return NewError(LDAPResultOperationsError, err)
 			}
 
 			// size limit
@@ -162,22 +160,31 @@ func filterAttributes(entry *Entry, attributes []string) (*Entry, error) {
 	// only return requested attributes
 	newAttributes := []*EntryAttribute{}
 
-	for _, attr := range entry.Attributes {
-		attrNameLower := strings.ToLower(attr.Name)
-		for _, requested := range attributes {
-			requestedLower := strings.ToLower(requested)
-			// You can request the directory server to return operational attributes by adding + (the plus sign) in your ldapsearch command.
-			// "+supportedControl" is treated as an operational attribute
-			if strings.HasPrefix(attrNameLower, "+") {
-				if requestedLower == "+" || attrNameLower == "+" + requestedLower {
-					newAttributes = append(newAttributes, &EntryAttribute{attr.Name[1:], attr.Values})
-					break
+	if len(attributes) > 1 || (len(attributes) == 1 && len(attributes[0]) > 0) {
+		for _, attr := range entry.Attributes {
+			attrNameLower := strings.ToLower(attr.Name)
+			for _, requested := range attributes {
+				requestedLower := strings.ToLower(requested)
+				// You can request the directory server to return operational attributes by adding + (the plus sign) in your ldapsearch command.
+				// "+supportedControl" is treated as an operational attribute
+				if strings.HasPrefix(attrNameLower, "+") {
+					if requestedLower == "+" || attrNameLower == "+"+requestedLower {
+						newAttributes = append(newAttributes, &EntryAttribute{attr.Name[1:], attr.Values})
+						break
+					}
+				} else {
+					if requested == "*" || attrNameLower == requestedLower {
+						newAttributes = append(newAttributes, attr)
+						break
+					}
 				}
-			} else {
-				if requested == "*" || attrNameLower == requestedLower {
-					newAttributes = append(newAttributes, attr)
-					break
-				}
+			}
+		}
+	} else {
+		// remove operational attributes
+		for _, attr := range entry.Attributes {
+			if !strings.HasPrefix(attr.Name, "+") {
+				newAttributes = append(newAttributes, attr)
 			}
 		}
 	}
