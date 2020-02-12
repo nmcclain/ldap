@@ -329,6 +329,17 @@ func (b bindPanic) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultC
 	return LDAPResultInvalidCredentials, nil
 }
 
+type bindCaseInsensitive struct {
+}
+
+func (b bindCaseInsensitive) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+	if strings.ToLower(bindDN) == "cn=case,o=testers,c=test" && bindSimplePw == "iLike2test" {
+		return LDAPResultSuccess, nil
+	}
+	return LDAPResultInvalidCredentials, nil
+}
+
+
 type searchSimple struct {
 }
 
@@ -407,4 +418,42 @@ func (s searchControls) Search(boundDN string, searchReq SearchRequest, conn net
 		entries = append(entries, newEntry)
 	}
 	return ServerSearchResult{entries, []string{}, []Control{}, LDAPResultSuccess}, nil
+}
+
+
+type searchCaseInsensitive struct {
+}
+
+func (s searchCaseInsensitive) Search(boundDN string, searchReq SearchRequest, conn net.Conn) (ServerSearchResult, error) {
+	entries := []*Entry{
+		&Entry{"cn=CASE,o=testers,c=test", []*EntryAttribute{
+			&EntryAttribute{"cn", []string{"CaSe"}},
+			&EntryAttribute{"o", []string{"ate"}},
+			&EntryAttribute{"uidNumber", []string{"5005"}},
+			&EntryAttribute{"accountstatus", []string{"active"}},
+			&EntryAttribute{"uid", []string{"trent"}},
+			&EntryAttribute{"description", []string{"trent via sa"}},
+			&EntryAttribute{"objectclass", []string{"posixaccount"}},
+		}},
+	}
+	return ServerSearchResult{entries, []string{}, []Control{}, LDAPResultSuccess}, nil
+}
+
+
+func TestRouteFunc(t *testing.T) {
+	if routeFunc("", []string{"a", "xyz", "tt"}) != "" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("a=b", []string{"a=b", "x=y,a=b", "tt"}) != "a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("x=y,a=b", []string{"a=b", "x=y,a=b", "tt"}) != "x=y,a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("x=y,a=b", []string{"x=y,a=b", "a=b", "tt"}) != "x=y,a=b" {
+		t.Error("routeFunc failed")
+	}
+	if routeFunc("nosuch", []string{"x=y,a=b", "a=b", "tt"}) != "" {
+		t.Error("routeFunc failed")
+	}
 }
