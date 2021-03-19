@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nmcclain/asn1-ber"
+	ber "github.com/nmcclain/asn1-ber"
 )
 
 type compileTest struct {
@@ -13,18 +13,18 @@ type compileTest struct {
 }
 
 var testFilters = []compileTest{
-	compileTest{filterStr: "(&(sn=Miller)(givenName=Bob))", filterType: FilterAnd},
-	compileTest{filterStr: "(|(sn=Miller)(givenName=Bob))", filterType: FilterOr},
-	compileTest{filterStr: "(!(sn=Miller))", filterType: FilterNot},
-	compileTest{filterStr: "(sn=Miller)", filterType: FilterEqualityMatch},
-	compileTest{filterStr: "(sn=Mill*)", filterType: FilterSubstrings},
-	compileTest{filterStr: "(sn=*Mill)", filterType: FilterSubstrings},
-	compileTest{filterStr: "(sn=*Mill*)", filterType: FilterSubstrings},
-	compileTest{filterStr: "(sn>=Miller)", filterType: FilterGreaterOrEqual},
-	compileTest{filterStr: "(sn<=Miller)", filterType: FilterLessOrEqual},
-	compileTest{filterStr: "(sn=*)", filterType: FilterPresent},
-	compileTest{filterStr: "(sn~=Miller)", filterType: FilterApproxMatch},
-	// compileTest{ filterStr: "()", filterType: FilterExtensibleMatch },
+	{filterStr: "(&(sn=Müller)(givenName=Bob))", filterType: FilterAnd},
+	{filterStr: "(|(sn=Möller)(givenName=Bob))", filterType: FilterOr},
+	{filterStr: "(!(sn=Møller))", filterType: FilterNot},
+	{filterStr: "(sn=Müller)", filterType: FilterEqualityMatch},
+	{filterStr: "(sn=Möll*)", filterType: FilterSubstrings},
+	{filterStr: "(sn=*Møll)", filterType: FilterSubstrings},
+	{filterStr: "(sn=*Müll*)", filterType: FilterSubstrings},
+	{filterStr: "(sn>=Möller)", filterType: FilterGreaterOrEqual},
+	{filterStr: "(sn<=Møller)", filterType: FilterLessOrEqual},
+	{filterStr: "(sn=*)", filterType: FilterPresent},
+	{filterStr: "(sn~=Müller)", filterType: FilterApproxMatch},
+	// { filterStr: "()", filterType: FilterExtensibleMatch },
 }
 
 func TestFilter(t *testing.T) {
