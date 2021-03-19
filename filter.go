@@ -7,8 +7,10 @@ package ldap
 import (
 	"errors"
 	"fmt"
-	"github.com/nmcclain/asn1-ber"
 	"strings"
+	"unicode/utf8"
+
+	ber "github.com/nmcclain/asn1-ber"
 )
 
 const (
@@ -179,10 +181,13 @@ func compileFilter(filter string, pos int) (*ber.Packet, int, error) {
 	default:
 		attribute := ""
 		condition := ""
-		for newPos < len(filter) && filter[newPos] != ')' {
+
+		for w := 0; newPos < len(filter) && filter[newPos] != ')'; newPos += w {
+			rune, width := utf8.DecodeRuneInString(filter[newPos:])
+			w = width
 			switch {
 			case packet != nil:
-				condition += fmt.Sprintf("%c", filter[newPos])
+				condition += fmt.Sprintf("%c", rune)
 			case filter[newPos] == '=':
 				packet = ber.Encode(ber.ClassContext, ber.TypeConstructed, FilterEqualityMatch, nil, FilterMap[FilterEqualityMatch])
 			case filter[newPos] == '>' && filter[newPos+1] == '=':
@@ -197,7 +202,6 @@ func compileFilter(filter string, pos int) (*ber.Packet, int, error) {
 			case packet == nil:
 				attribute += fmt.Sprintf("%c", filter[newPos])
 			}
-			newPos++
 		}
 		if newPos == len(filter) {
 			err = NewError(ErrorFilterCompile, errors.New("ldap: unexpected end of filter"))
