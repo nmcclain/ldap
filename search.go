@@ -60,6 +60,7 @@
 package ldap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -170,6 +171,7 @@ type SearchRequest struct {
 	Filter       string
 	Attributes   []string
 	Controls     []Control
+	Context      context.Context
 }
 
 func (s *SearchRequest) encode() (*ber.Packet, error) {

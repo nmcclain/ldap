@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"context"
 	"log"
 	"net"
 
@@ -161,7 +162,7 @@ func HandleCompareRequest(req *ber.Packet, boundDN string, fns map[string]Compar
 	return resultCode
 }
 
-func HandleExtendedRequest(req *ber.Packet, boundDN string, fns map[string]Extender, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleExtendedRequest(req *ber.Packet, boundDN string, fns map[string]Extender, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	if len(req.Children) != 1 && len(req.Children) != 2 {
 		return LDAPResultProtocolError
 	}
@@ -170,7 +171,7 @@ func HandleExtendedRequest(req *ber.Packet, boundDN string, fns map[string]Exten
 	if len(req.Children) == 2 {
 		val = ber.DecodeString(req.Children[1].Data.Bytes())
 	}
-	extReq := ExtendedRequest{name, val}
+	extReq := ExtendedRequest{name, val, ctx}
 	fnNames := []string{}
 	for k := range fns {
 		fnNames = append(fnNames, k)

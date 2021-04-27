@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"context"
 	"net"
 	"os/exec"
 	"strings"
@@ -155,7 +156,7 @@ func TestModifyDN(t *testing.T) {
 type modifyTestHandler struct {
 }
 
-func (h modifyTestHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (h modifyTestHandler) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	if bindDN == "" && bindSimplePw == "" {
 		return LDAPResultSuccess, nil
 	}

@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -9,7 +10,7 @@ import (
 	ber "github.com/nmcclain/asn1-ber"
 )
 
-func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64, boundDN string, server *Server, conn net.Conn) (resultErr error) {
+func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64, boundDN string, server *Server, conn net.Conn, ctx context.Context) (resultErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			resultErr = NewError(LDAPResultOperationsError, fmt.Errorf("Search function panic: %s", r))
@@ -20,6 +21,7 @@ func HandleSearchRequest(req *ber.Packet, controls *[]Control, messageID uint64,
 	if err != nil {
 		return NewError(LDAPResultOperationsError, err)
 	}
+	searchReq.Context = ctx
 
 	filterPacket, err := CompileFilter(searchReq.Filter)
 	if err != nil {
@@ -150,7 +152,7 @@ func parseSearchRequest(boundDN string, req *ber.Packet, controls *[]Control) (S
 	}
 	searchReq := SearchRequest{baseObject, scope,
 		derefAliases, sizeLimit, timeLimit,
-		typesOnly, filter, attributes, *controls}
+		typesOnly, filter, attributes, *controls, nil}
 
 	return searchReq, nil
 }

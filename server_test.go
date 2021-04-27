@@ -2,6 +2,7 @@ package ldap
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"net"
 	"os/exec"
@@ -294,7 +295,7 @@ func TestSearchStats(t *testing.T) {
 type bindAnonOK struct {
 }
 
-func (b bindAnonOK) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (b bindAnonOK) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	if bindDN == "" && bindSimplePw == "" {
 		return LDAPResultSuccess, nil
 	}
@@ -304,7 +305,7 @@ func (b bindAnonOK) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResult
 type bindSimple struct {
 }
 
-func (b bindSimple) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (b bindSimple) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	if bindDN == "cn=testy,o=testers,c=test" && bindSimplePw == "iLike2test" {
 		return LDAPResultSuccess, nil
 	}
@@ -314,7 +315,7 @@ func (b bindSimple) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResult
 type bindSimple2 struct {
 }
 
-func (b bindSimple2) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (b bindSimple2) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	if bindDN == "cn=testy,o=testers,c=testz" && bindSimplePw == "ZLike2test" {
 		return LDAPResultSuccess, nil
 	}
@@ -324,7 +325,7 @@ func (b bindSimple2) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResul
 type bindPanic struct {
 }
 
-func (b bindPanic) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (b bindPanic) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	panic("test panic at the disco")
 	return LDAPResultInvalidCredentials, nil
 }

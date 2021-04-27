@@ -5,6 +5,7 @@
 package ldap
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -185,6 +186,7 @@ type CompareRequest struct {
 type ExtendedRequest struct {
 	requestName  string
 	requestValue string
+	Context      context.Context
 }
 
 // Adds descriptions to an LDAP Response packet for debugging

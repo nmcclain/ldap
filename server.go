@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"log"
@@ -12,7 +13,7 @@ import (
 )
 
 type Binder interface {
-	Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error)
+	Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error)
 }
 type Searcher interface {
 	Search(boundDN string, req SearchRequest, conn net.Conn) (ServerSearchResult, error)
@@ -224,6 +225,7 @@ listener:
 //
 func (server *Server) handleConnection(conn net.Conn) {
 	boundDN := "" // "" == anonymous
+	ctx := context.Background()
 
 handler:
 	for {
@@ -275,7 +277,7 @@ handler:
 
 		case ApplicationBindRequest:
 			server.Stats.countBinds(1)
-			ldapResultCode := HandleBindRequest(req, server.BindFns, conn)
+			ldapResultCode := HandleBindRequest(req, ctx, server.BindFns, conn)
 			if ldapResultCode == LDAPResultSuccess {
 				boundDN, ok = req.Children[1].Value.(string)
 				if !ok {
@@ -290,7 +292,7 @@ handler:
 			}
 		case ApplicationSearchRequest:
 			server.Stats.countSearches(1)
-			if err := HandleSearchRequest(req, &controls, messageID, boundDN, server, conn); err != nil {
+			if err := HandleSearchRequest(req, &controls, messageID, boundDN, server, conn, ctx); err != nil {
 				log.Printf("handleSearchRequest error %s", err.Error()) // TODO: make this more testable/better err handling - stop using log, stop using breaks?
 				e := err.(*Error)
 				if err = sendPacket(conn, encodeSearchDone(messageID, e.ResultCode)); err != nil {
@@ -308,7 +310,7 @@ handler:
 			server.Stats.countUnbinds(1)
 			break handler // simply disconnect
 		case ApplicationExtendedRequest:
-			ldapResultCode := HandleExtendedRequest(req, boundDN, server.ExtendedFns, conn)
+			ldapResultCode := HandleExtendedRequest(req, boundDN, server.ExtendedFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationExtendedResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
@@ -406,7 +408,7 @@ func encodeLDAPResponse(messageID uint64, responseType uint8, ldapResultCode LDA
 type defaultHandler struct {
 }
 
-func (h defaultHandler) Bind(bindDN, bindSimplePw string, conn net.Conn) (LDAPResultCode, error) {
+func (h defaultHandler) Bind(bindDN, bindSimplePw string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	return LDAPResultInvalidCredentials, nil
 }
 func (h defaultHandler) Search(boundDN string, req SearchRequest, conn net.Conn) (ServerSearchResult, error) {
