@@ -165,6 +165,7 @@ type Attribute struct {
 type AddRequest struct {
 	dn         string
 	attributes []Attribute
+	Context    context.Context
 }
 type DeleteRequest struct {
 	dn string
@@ -174,14 +175,16 @@ type ModifyDNRequest struct {
 	newrdn       string
 	deleteoldrdn bool
 	newSuperior  string
+	Context      context.Context
 }
 type AttributeValueAssertion struct {
 	attributeDesc  string
 	assertionValue string
 }
 type CompareRequest struct {
-	dn  string
-	ava []AttributeValueAssertion
+	dn      string
+	ava     []AttributeValueAssertion
+	Context context.Context
 }
 type ExtendedRequest struct {
 	requestName  string

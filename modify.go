@@ -30,6 +30,7 @@
 package ldap
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -69,6 +70,7 @@ type ModifyRequest struct {
 	AddAttributes     []PartialAttribute
 	DeleteAttributes  []PartialAttribute
 	ReplaceAttributes []PartialAttribute
+	Context           context.Context
 }
 
 func (m *ModifyRequest) Add(attrType string, attrVals []string) {

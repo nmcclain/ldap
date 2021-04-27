@@ -25,7 +25,7 @@ type Modifier interface {
 	Modify(boundDN string, req ModifyRequest, conn net.Conn) (LDAPResultCode, error)
 }
 type Deleter interface {
-	Delete(boundDN, deleteDN string, conn net.Conn) (LDAPResultCode, error)
+	Delete(boundDN, deleteDN string, conn net.Conn, ctx context.Context) (LDAPResultCode, error)
 }
 type ModifyDNr interface {
 	ModifyDN(boundDN string, req ModifyDNRequest, conn net.Conn) (LDAPResultCode, error)
@@ -321,35 +321,35 @@ handler:
 			break handler
 
 		case ApplicationAddRequest:
-			ldapResultCode := HandleAddRequest(req, boundDN, server.AddFns, conn)
+			ldapResultCode := HandleAddRequest(req, boundDN, server.AddFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationAddResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
 				break handler
 			}
 		case ApplicationModifyRequest:
-			ldapResultCode := HandleModifyRequest(req, boundDN, server.ModifyFns, conn)
+			ldapResultCode := HandleModifyRequest(req, boundDN, server.ModifyFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationModifyResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
 				break handler
 			}
 		case ApplicationDelRequest:
-			ldapResultCode := HandleDeleteRequest(req, boundDN, server.DeleteFns, conn)
+			ldapResultCode := HandleDeleteRequest(req, boundDN, server.DeleteFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationDelResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
 				break handler
 			}
 		case ApplicationModifyDNRequest:
-			ldapResultCode := HandleModifyDNRequest(req, boundDN, server.ModifyDNFns, conn)
+			ldapResultCode := HandleModifyDNRequest(req, boundDN, server.ModifyDNFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationModifyDNResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
 				break handler
 			}
 		case ApplicationCompareRequest:
-			ldapResultCode := HandleCompareRequest(req, boundDN, server.CompareFns, conn)
+			ldapResultCode := HandleCompareRequest(req, boundDN, server.CompareFns, conn, ctx)
 			responsePacket := encodeLDAPResponse(messageID, ApplicationCompareResponse, ldapResultCode, LDAPResultCodeMap[ldapResultCode])
 			if err = sendPacket(conn, responsePacket); err != nil {
 				log.Printf("sendPacket error %s", err.Error())
@@ -420,7 +420,7 @@ func (h defaultHandler) Add(boundDN string, req AddRequest, conn net.Conn) (LDAP
 func (h defaultHandler) Modify(boundDN string, req ModifyRequest, conn net.Conn) (LDAPResultCode, error) {
 	return LDAPResultInsufficientAccessRights, nil
 }
-func (h defaultHandler) Delete(boundDN, deleteDN string, conn net.Conn) (LDAPResultCode, error) {
+func (h defaultHandler) Delete(boundDN, deleteDN string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	return LDAPResultInsufficientAccessRights, nil
 }
 func (h defaultHandler) ModifyDN(boundDN string, req ModifyDNRequest, conn net.Conn) (LDAPResultCode, error) {

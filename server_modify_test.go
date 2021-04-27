@@ -171,7 +171,7 @@ func (h modifyTestHandler) Add(boundDN string, req AddRequest, conn net.Conn) (L
 	}
 	return LDAPResultInsufficientAccessRights, nil
 }
-func (h modifyTestHandler) Delete(boundDN, deleteDN string, conn net.Conn) (LDAPResultCode, error) {
+func (h modifyTestHandler) Delete(boundDN, deleteDN string, conn net.Conn, ctx context.Context) (LDAPResultCode, error) {
 	// only succeed on expected deleteDN
 	if deleteDN == "cn=Delete Me,dc=example,dc=com" {
 		return LDAPResultSuccess, nil

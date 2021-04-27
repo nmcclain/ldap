@@ -8,12 +8,13 @@ import (
 	"github.com/nmcclain/asn1-ber"
 )
 
-func HandleAddRequest(req *ber.Packet, boundDN string, fns map[string]Adder, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleAddRequest(req *ber.Packet, boundDN string, fns map[string]Adder, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	if len(req.Children) != 2 {
 		return LDAPResultProtocolError
 	}
 	var ok bool
 	addReq := AddRequest{}
+	addReq.Context = ctx
 	addReq.dn, ok = req.Children[0].Value.(string)
 	if !ok {
 		return LDAPResultProtocolError
@@ -52,14 +53,14 @@ func HandleAddRequest(req *ber.Packet, boundDN string, fns map[string]Adder, con
 	return resultCode
 }
 
-func HandleDeleteRequest(req *ber.Packet, boundDN string, fns map[string]Deleter, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleDeleteRequest(req *ber.Packet, boundDN string, fns map[string]Deleter, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	deleteDN := ber.DecodeString(req.Data.Bytes())
 	fnNames := []string{}
 	for k := range fns {
 		fnNames = append(fnNames, k)
 	}
 	fn := routeFunc(boundDN, fnNames)
-	resultCode, err := fns[fn].Delete(boundDN, deleteDN, conn)
+	resultCode, err := fns[fn].Delete(boundDN, deleteDN, conn, ctx)
 	if err != nil {
 		log.Printf("DeleteFn Error %s", err.Error())
 		return LDAPResultOperationsError
@@ -67,12 +68,13 @@ func HandleDeleteRequest(req *ber.Packet, boundDN string, fns map[string]Deleter
 	return resultCode
 }
 
-func HandleModifyRequest(req *ber.Packet, boundDN string, fns map[string]Modifier, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleModifyRequest(req *ber.Packet, boundDN string, fns map[string]Modifier, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	if len(req.Children) != 2 {
 		return LDAPResultProtocolError
 	}
 	var ok bool
 	modReq := ModifyRequest{}
+	modReq.Context = ctx
 	modReq.Dn, ok = req.Children[0].Value.(string)
 	if !ok {
 		return LDAPResultProtocolError
@@ -126,12 +128,13 @@ func HandleModifyRequest(req *ber.Packet, boundDN string, fns map[string]Modifie
 	return resultCode
 }
 
-func HandleCompareRequest(req *ber.Packet, boundDN string, fns map[string]Comparer, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleCompareRequest(req *ber.Packet, boundDN string, fns map[string]Comparer, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	if len(req.Children) != 2 {
 		return LDAPResultProtocolError
 	}
 	var ok bool
 	compReq := CompareRequest{}
+	compReq.Context = ctx
 	compReq.dn, ok = req.Children[0].Value.(string)
 	if !ok {
 		return LDAPResultProtocolError
@@ -195,12 +198,13 @@ func HandleAbandonRequest(req *ber.Packet, boundDN string, fns map[string]Abando
 	return err
 }
 
-func HandleModifyDNRequest(req *ber.Packet, boundDN string, fns map[string]ModifyDNr, conn net.Conn) (resultCode LDAPResultCode) {
+func HandleModifyDNRequest(req *ber.Packet, boundDN string, fns map[string]ModifyDNr, conn net.Conn, ctx context.Context) (resultCode LDAPResultCode) {
 	if len(req.Children) != 3 && len(req.Children) != 4 {
 		return LDAPResultProtocolError
 	}
 	var ok bool
 	mdnReq := ModifyDNRequest{}
+	mdnReq.Context = ctx
 	mdnReq.dn, ok = req.Children[0].Value.(string)
 	if !ok {
 		return LDAPResultProtocolError
