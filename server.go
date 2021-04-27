@@ -225,7 +225,7 @@ listener:
 //
 func (server *Server) handleConnection(conn net.Conn) {
 	boundDN := "" // "" == anonymous
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 handler:
 	for {
@@ -361,6 +361,8 @@ handler:
 	for _, c := range server.CloseFns {
 		c.Close(boundDN, conn)
 	}
+
+	cancel()
 
 	conn.Close()
 }
